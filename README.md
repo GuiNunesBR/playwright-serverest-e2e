@@ -4,7 +4,7 @@
 
 Suíte de automação **E2E (interface) e de API** em **Playwright + TypeScript** contra o [ServeRest](https://serverest.dev), uma loja virtual pública criada para estudo de testes. O foco não é a quantidade de testes, e sim a **arquitetura**: dados isolados, limpeza garantida, validação de contrato, sessão reaproveitada e CI com relatório publicado.
 
-> Existe uma versão equivalente em **Cypress** (mesmos cenários) para comparar as duas ferramentas: _em breve_.
+> Existe uma versão equivalente em **Cypress**, com os mesmos cenários: [cypress-serverest-e2e](https://github.com/GuiNunesBR/cypress-serverest-e2e). O README de lá traz o comparativo entre as duas ferramentas (tempo, paralelismo, API, interceptação de rede, relatório e depuração).
 
 ## O que é testado
 
@@ -81,7 +81,6 @@ tests/
 - Acessibilidade com `@axe-core/playwright`.
 - Teste de carga simples (k6) nos endpoints de login e produtos.
 - Matriz de navegadores no CI e relatório Allure.
-- Versão Cypress com os mesmos cenários e um comparativo (velocidade, depuração, API, CI).
 
 ## Licença
 
