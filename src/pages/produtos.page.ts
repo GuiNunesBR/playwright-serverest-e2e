@@ -43,4 +43,8 @@ export class ListarProdutosPage {
   linhaDe(nomeDoProduto: string): Locator {
     return this.page.getByRole('row').filter({ hasText: nomeDoProduto });
   }
+
+  async excluir(nomeDoProduto: string): Promise<void> {
+    await this.linhaDe(nomeDoProduto).getByRole('button', { name: 'Excluir' }).click();
+  }
 }

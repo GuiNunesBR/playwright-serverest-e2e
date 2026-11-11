@@ -11,10 +11,11 @@ Suíte de automação **E2E (interface) e de API** em **Playwright + TypeScript*
 | Camada | Cobertura |
 |---|---|
 | **API** | usuários (cadastro, duplicidade, campos obrigatórios, consulta, exclusão), login (válido, senha errada, e-mail inexistente), produtos (CRUD, token, duplicidade, preço inválido, filtro), carrinho e conclusão de compra |
-| **UI** | login (sucesso e erro), cadastro de usuário (sucesso e e-mail duplicado), cadastro de produto pelo admin e conferência na listagem |
+| **UI · admin** | login (sucesso, erro e logout), cadastro de usuário pela tela pública e pelo painel, cadastro e exclusão de produto |
+| **UI · cliente** | busca de produto na loja e montagem da lista de compras (quantidade e preço) |
 | **Contrato** | toda resposta relevante da API é validada com schemas [Zod](https://zod.dev) |
 
-São **25 execuções** (18 de API, 5 de UI e 2 de preparação/limpeza). Os cenários mais importantes levam a tag `@smoke` (`npm run test:smoke`).
+São **29 execuções** (18 de API, 9 de UI e 2 de preparação/limpeza). Os cenários mais importantes levam a tag `@smoke` (`npm run test:smoke`).
 
 ## Como rodar
 
@@ -32,6 +33,15 @@ npm run report        # abre o relatório HTML
 
 Para apontar para outro ambiente, copie `.env.example` para `.env` e ajuste `FRONT_URL` e `API_URL`.
 
+## Evidências no relatório
+
+O relatório HTML do Playwright funciona como evidência de execução:
+
+- **Chamadas de API.** Toda chamada feita pelo teste aparece como um passo (`API POST /usuarios → 201`) com a requisição e a resposta anexadas em JSON.
+- **Respostas recebidas pelo front.** Nos testes de UI, a chamada que a tela dispara é interceptada (`Front DELETE /produtos/:id → 200`), anexada e validada com o mesmo schema Zod dos testes de API.
+- **Prints.** Cada cenário de UI anexa prints da tela nos pontos-chave (`Evidência: produto na listagem`). Em caso de falha, ficam também o print final, o vídeo e o trace.
+- **Confirmação no backend.** Depois da ação na tela, o teste consulta a API para conferir que o dado foi gravado (ou removido) de verdade.
+
 ## Estrutura
 
 ```
@@ -40,7 +50,7 @@ src/
   config/       variáveis de ambiente e caminhos
   data/         fábricas de dados únicos (faker)
   fixtures/     fixtures do Playwright: api, admin (isolado por teste) e limpeza
-  helpers/      criação de sessão/admin e limpeza de produtos
+  helpers/      criação de sessão (admin/cliente) e anexos de evidência
   pages/        Page Objects da interface
 tests/
   api/          testes de API
@@ -51,7 +61,7 @@ tests/
 ## Decisões de projeto
 
 - **Dados isolados e únicos.** O ServeRest é compartilhado, então cada teste cria seus próprios dados com sufixo único (nada de e-mails ou nomes fixos). Isso permite rodar em paralelo sem colisão.
-- **Limpeza garantida.** A fixture `limpeza` apaga o que o teste criou (cancelando carrinho aberto antes), mesmo quando o teste falha. Nos testes de UI, a limpeza roda em `finally`.
+- **Limpeza garantida.** A fixture `limpeza` apaga o que o teste criou (cancelando carrinho aberto antes), mesmo quando o teste falha. O que nasce pela interface é localizado no final pelo e-mail ou pelo nome.
 - **Contratos com Zod.** Em vez de só checar o status, o teste valida a forma da resposta. Se a API mudar, o erro aponta o campo.
 - **Sessão reaproveitada.** O projeto `setup` cria um admin pela API, faz login pela interface uma vez e salva o `storageState`. Os testes de UI já começam autenticados, e o projeto `cleanup` remove o admin ao final.
 - **Seletores estáveis.** Page Objects com `data-testid` e papéis de acessibilidade; o único acoplamento ao DOM é o próprio contrato do front.
@@ -62,6 +72,8 @@ tests/
 
 - É um serviço **público e compartilhado**: os dados são limpos periodicamente e a disponibilidade não é garantida. Rode com moderação.
 - O `data-testid` do botão de cadastrar produto no front é `cadastarProdutos` (sem o "r"). Foi mantido como está.
+- O botão "Adicionar no carrinho" da lista de compras não chama a API: leva a uma tela "Em construção". Por isso o fluxo do cliente vai até a lista de compras.
+- Ao excluir um produto, o front recarrega a página logo após o `DELETE`. Por isso a captura da resposta usa `page.route` em vez de `waitForResponse`, que perderia o corpo na navegação.
 - Achado de estudo: o token JWT devolvido pelo login carrega a **senha do usuário no payload**. Em um sistema real isso seria uma falha de segurança grave; aqui é útil como exemplo para testes exploratórios.
 
 ## Próximos passos

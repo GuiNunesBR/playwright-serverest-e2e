@@ -21,55 +21,85 @@ export interface ItemCarrinho {
   quantidade: number;
 }
 
+export interface ChamadaApi {
+  metodo: string;
+  caminho: string;
+  corpoEnviado?: unknown;
+  resposta: APIResponse;
+}
+
+/** Recebe cada chamada feita pelo cliente (usado para anexar requisição e resposta ao relatório). */
+export type RegistroDeChamada = (chamada: ChamadaApi) => Promise<void>;
+
+interface Opcoes {
+  data?: unknown;
+  params?: Record<string, string>;
+  token?: string;
+}
+
 /** Cliente fino da API do ServeRest: uma função por endpoint, sem asserções (quem testa é o teste). */
 export class ServeRestClient {
-  constructor(private readonly request: APIRequestContext) {}
+  constructor(
+    private readonly request: APIRequestContext,
+    private readonly registrar?: RegistroDeChamada,
+  ) {}
 
-  private auth(token?: string) {
-    return token ? { headers: { Authorization: token } } : {};
+  private async enviar(metodo: 'GET' | 'POST' | 'DELETE', caminho: string, opcoes: Opcoes = {}): Promise<APIResponse> {
+    const { data, params, token } = opcoes;
+    const resposta = await this.request.fetch(caminho, {
+      method: metodo,
+      data,
+      params,
+      headers: token ? { Authorization: token } : undefined,
+    });
+    if (this.registrar) {
+      const query = params ? `?${new URLSearchParams(params)}` : '';
+      await this.registrar({ metodo, caminho: caminho + query, corpoEnviado: data, resposta });
+    }
+    return resposta;
   }
 
   // ---- usuários
   criarUsuario(dados: object): Promise<APIResponse> {
-    return this.request.post('/usuarios', { data: dados });
+    return this.enviar('POST', '/usuarios', { data: dados });
   }
   buscarUsuario(id: string): Promise<APIResponse> {
-    return this.request.get(`/usuarios/${id}`);
+    return this.enviar('GET', `/usuarios/${id}`);
   }
   buscarUsuarioPorEmail(email: string): Promise<APIResponse> {
-    return this.request.get('/usuarios', { params: { email } });
+    return this.enviar('GET', '/usuarios', { params: { email } });
   }
   excluirUsuario(id: string): Promise<APIResponse> {
-    return this.request.delete(`/usuarios/${id}`);
+    return this.enviar('DELETE', `/usuarios/${id}`);
   }
 
   // ---- login
   login(email: string, password: string): Promise<APIResponse> {
-    return this.request.post('/login', { data: { email, password } });
+    return this.enviar('POST', '/login', { data: { email, password } });
   }
 
   // ---- produtos
   criarProduto(dados: object, token?: string): Promise<APIResponse> {
-    return this.request.post('/produtos', { data: dados, ...this.auth(token) });
+    return this.enviar('POST', '/produtos', { data: dados, token });
   }
   buscarProduto(id: string): Promise<APIResponse> {
-    return this.request.get(`/produtos/${id}`);
+    return this.enviar('GET', `/produtos/${id}`);
   }
   listarProdutos(params: Record<string, string> = {}): Promise<APIResponse> {
-    return this.request.get('/produtos', { params });
+    return this.enviar('GET', '/produtos', { params });
   }
   excluirProduto(id: string, token?: string): Promise<APIResponse> {
-    return this.request.delete(`/produtos/${id}`, this.auth(token));
+    return this.enviar('DELETE', `/produtos/${id}`, { token });
   }
 
   // ---- carrinhos
   criarCarrinho(produtos: ItemCarrinho[], token?: string): Promise<APIResponse> {
-    return this.request.post('/carrinhos', { data: { produtos }, ...this.auth(token) });
+    return this.enviar('POST', '/carrinhos', { data: { produtos }, token });
   }
   concluirCompra(token?: string): Promise<APIResponse> {
-    return this.request.delete('/carrinhos/concluir-compra', this.auth(token));
+    return this.enviar('DELETE', '/carrinhos/concluir-compra', { token });
   }
   cancelarCompra(token?: string): Promise<APIResponse> {
-    return this.request.delete('/carrinhos/cancelar-compra', this.auth(token));
+    return this.enviar('DELETE', '/carrinhos/cancelar-compra', { token });
   }
 }

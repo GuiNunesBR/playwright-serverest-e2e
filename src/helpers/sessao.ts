@@ -1,10 +1,10 @@
 import { readFile } from 'node:fs/promises';
 import { ADMIN_FILE } from '../config/paths';
-import type { ServeRestClient } from '../api/client';
-import { CadastroSchema, ListaProdutosSchema, LoginSchema, validar } from '../api/schemas';
+import type { Booleano, ServeRestClient } from '../api/client';
+import { CadastroSchema, LoginSchema, validar } from '../api/schemas';
 import { novoUsuario } from '../data/factories';
 
-export interface AdminSessao {
+export interface UsuarioSessao {
   id: string;
   nome: string;
   email: string;
@@ -12,12 +12,12 @@ export interface AdminSessao {
   token: string;
 }
 
-/** Cria um administrador pela API e já devolve o token de acesso. */
-export async function criarAdmin(api: ServeRestClient): Promise<AdminSessao> {
-  const dados = novoUsuario({ administrador: 'true' });
+/** Cria um usuário (admin ou cliente) pela API e já devolve o token de acesso. */
+export async function criarUsuarioComSessao(api: ServeRestClient, administrador: Booleano): Promise<UsuarioSessao> {
+  const dados = novoUsuario({ administrador });
   const cadastro = await api.criarUsuario(dados);
   if (cadastro.status() !== 201) {
-    throw new Error(`Não foi possível criar o admin: ${cadastro.status()} ${await cadastro.text()}`);
+    throw new Error(`Não foi possível criar o usuário: ${cadastro.status()} ${await cadastro.text()}`);
   }
   const { _id } = validar(CadastroSchema, await cadastro.json());
   const token = await obterToken(api, dados.email, dados.password);
@@ -33,15 +33,6 @@ export async function obterToken(api: ServeRestClient, email: string, password: 
 }
 
 /** Lê o admin criado pelo projeto "setup" (usado pelos testes de interface). */
-export async function lerAdminDoSetup(): Promise<Omit<AdminSessao, 'token'>> {
+export async function lerAdminDoSetup(): Promise<Omit<UsuarioSessao, 'token'>> {
   return JSON.parse(await readFile(ADMIN_FILE, 'utf-8'));
-}
-
-/** Remove produtos pelo nome exato (usado para limpar o que a interface criou). */
-export async function removerProdutosPorNome(api: ServeRestClient, nome: string, token: string): Promise<void> {
-  const resposta = await api.listarProdutos({ nome });
-  const { produtos } = validar(ListaProdutosSchema, await resposta.json());
-  for (const produto of produtos) {
-    await api.excluirProduto(produto._id, token);
-  }
 }
