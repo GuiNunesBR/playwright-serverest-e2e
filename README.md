@@ -66,7 +66,7 @@ tests/
 - **Sessão reaproveitada.** O projeto `setup` cria um admin pela API, faz login pela interface uma vez e salva o `storageState`. Os testes de UI já começam autenticados, e o projeto `cleanup` remove o admin ao final.
 - **Seletores estáveis.** Page Objects com `data-testid` e papéis de acessibilidade; o único acoplamento ao DOM é o próprio contrato do front.
 - **API sem navegador.** O projeto `api` usa apenas o `request` do Playwright: rápido e barato no CI.
-- **CI.** Checagem de tipos, execução completa, relatório como artefato e publicação no GitHub Pages na branch `main`.
+- **CI.** Roda dentro da imagem oficial do Playwright (navegador e dependências já instalados, sem `apt-get` a cada execução), com checagem de tipos, execução completa, relatório como artefato e publicação no GitHub Pages na branch `main`. A tag da imagem acompanha a versão do `@playwright/test`.
 
 ## Observações sobre o alvo
 
