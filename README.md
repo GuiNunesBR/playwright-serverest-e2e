@@ -13,9 +13,10 @@ Suíte de automação **E2E (interface) e de API** em **Playwright + TypeScript*
 | **API** | usuários (cadastro, duplicidade, campos obrigatórios, consulta, exclusão), login (válido, senha errada, e-mail inexistente), produtos (CRUD, token, duplicidade, preço inválido, filtro), carrinho e conclusão de compra |
 | **UI · admin** | login (sucesso, erro e logout), cadastro de usuário pela tela pública e pelo painel, cadastro e exclusão de produto |
 | **UI · cliente** | busca de produto na loja e montagem da lista de compras (quantidade e preço) |
+| **Acessibilidade** | 9 telas auditadas com axe-core (WCAG 2.1 A e AA), com linha de base das pendências conhecidas |
 | **Contrato** | toda resposta relevante da API é validada com schemas [Zod](https://zod.dev) |
 
-São **29 execuções** (18 de API, 9 de UI e 2 de preparação/limpeza). Os cenários mais importantes levam a tag `@smoke` (`npm run test:smoke`).
+São **38 execuções** (18 de API, 9 de UI, 9 de acessibilidade e 2 de preparação/limpeza). Os cenários mais importantes levam a tag `@smoke` (`npm run test:smoke`) e os de acessibilidade, `@a11y` (`npm run test:a11y`).
 
 ## Como rodar
 
@@ -28,6 +29,7 @@ npm test              # tudo (API + UI)
 npm run test:api      # só API (não abre navegador)
 npm run test:ui       # só interface
 npm run test:smoke    # só os cenários @smoke
+npm run test:a11y     # só acessibilidade
 npm run report        # abre o relatório HTML
 ```
 
@@ -42,10 +44,25 @@ O relatório HTML do Playwright funciona como evidência de execução:
 - **Prints.** Cada cenário de UI anexa prints da tela nos pontos-chave (`Evidência: produto na listagem`). Em caso de falha, ficam também o print final, o vídeo e o trace.
 - **Confirmação no backend.** Depois da ação na tela, o teste consulta a API para conferir que o dado foi gravado (ou removido) de verdade.
 
+## Acessibilidade
+
+As 9 telas do front (públicas, painel do admin e loja do cliente) passam pelo [axe-core](https://github.com/dequelabs/axe-core) com os critérios **WCAG 2.1 A e AA**. A lista de páginas e a linha de base são as mesmas nos projetos Playwright e Cypress.
+
+O front já tem violações hoje, então o teste não exige zero: cada página tem uma **linha de base** com as regras já conhecidas, e o teste **falha se aparecer uma regra nova**. O resultado completo do axe (regra, impacto, elementos afetados e link de referência) fica anexado a cada teste no relatório.
+
+Pendências conhecidas do ServeRest:
+
+| Regra | Impacto | Onde | O que é |
+|---|---|---|---|
+| `image-alt` | crítico | todas as telas | imagens (logo e fotos de produto) sem texto alternativo |
+| `color-contrast` | sério | todas as telas | textos e botões abaixo do contraste mínimo de 4.5:1 |
+| `link-name` | sério | vitrine do cliente (`/home`) | o link de cada produto envolve só a imagem sem `alt`, então fica sem nome para leitores de tela |
+
 ## Estrutura
 
 ```
 src/
+  a11y/         páginas auditadas, linha de base e análise com axe
   api/          cliente da API (um método por endpoint) e schemas Zod
   config/       variáveis de ambiente e caminhos
   data/         fábricas de dados únicos (faker)
@@ -78,7 +95,6 @@ tests/
 
 ## Próximos passos
 
-- Acessibilidade com `@axe-core/playwright`.
 - Teste de carga simples (k6) nos endpoints de login e produtos.
 - Matriz de navegadores no CI e relatório Allure.
 
