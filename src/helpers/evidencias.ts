@@ -76,18 +76,21 @@ export async function capturarRespostaDoFront(
     }
   };
 
-  let relogio: NodeJS.Timeout | undefined;
-  const limite = new Promise<never>((_, reject) => {
-    relogio = setTimeout(() => reject(new Error(`O front não chamou ${metodo} ${caminho}`)), 10_000);
-  });
-
   await page.route(casa, interceptar);
   try {
     await acao();
-    return await Promise.race([resultado, limite]);
+    // O prazo começa depois da ação: se a ação travar (um seletor que sumiu, por exemplo), o erro dela é o que aparece.
+    let relogio: NodeJS.Timeout | undefined;
+    const limite = new Promise<never>((_, reject) => {
+      relogio = setTimeout(() => reject(new Error(`O front não chamou ${metodo} ${caminho}`)), 10_000);
+    });
+    try {
+      return await Promise.race([resultado, limite]);
+    } finally {
+      clearTimeout(relogio);
+    }
   } finally {
-    clearTimeout(relogio);
-    await page.unroute(casa, interceptar);
+    if (!page.isClosed()) await page.unroute(casa, interceptar);
   }
 }
 
