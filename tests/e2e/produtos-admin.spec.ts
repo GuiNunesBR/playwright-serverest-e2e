@@ -6,7 +6,13 @@ import { CadastrarProdutoPage, ListarProdutosPage } from '../../src/pages/produt
 // Usa a sessão de admin criada em auth.setup.ts (storageState definido no playwright.config.ts).
 // O token do fixture `admin` serve só para preparar e limpar dados pela API.
 test.describe('UI · Produtos (admin)', () => {
-  test('cadastra um produto e o encontra na listagem', { tag: '@smoke' }, async ({ page, api, admin, limpeza, capturarApi, evidencia }) => {
+  // Falha conhecida: desde o ServeRest 3.4.0 a API recusa preco e quantidade em texto, e o front ainda envia texto.
+  // Correção proposta em https://github.com/ServeRest/front/pull/42. Quando for publicada, este teste passa,
+  // o test.fail acusa e a marcação deve sair.
+  test.fail('cadastra um produto e o encontra na listagem', {
+    tag: '@smoke',
+    annotation: { type: 'issue', description: 'https://github.com/ServeRest/front/pull/42' },
+  }, async ({ page, api, admin, limpeza, capturarApi, evidencia }) => {
     const produto = novoProduto();
     limpeza.produtoPorNome(produto.nome, admin.token);
 
