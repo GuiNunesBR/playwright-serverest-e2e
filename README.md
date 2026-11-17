@@ -85,18 +85,6 @@ tests/
 - **API sem navegador.** O projeto `api` usa apenas o `request` do Playwright: rápido e barato no CI.
 - **CI.** Roda dentro da imagem oficial do Playwright (navegador e dependências já instalados, sem `apt-get` a cada execução), com checagem de tipos, execução completa, relatório como artefato e publicação no GitHub Pages na branch `main`. A tag da imagem acompanha a versão do `@playwright/test`.
 
-## Falhas conhecidas
-
-Falhas do alvo, não da suíte. Ficam marcadas com o motivo e o link, e não somem entre os testes verdes.
-
-| Teste | Desde | Situação |
-|---|---|---|
-| `produtos-admin.spec.ts` › cadastra um produto e o encontra na listagem | 16/11/2026 | `test.fail`, com a anotação `issue` no relatório. Correção proposta em [ServeRest/front#42](https://github.com/ServeRest/front/pull/42). |
-
-Desde o ServeRest 3.4.0 ([ServeRest#571](https://github.com/ServeRest/ServeRest/pull/571)), a API recusa `preco` e `quantidade` enviados como texto, como o contrato sempre declarou. O front ainda envia texto, e o cadastro pela tela recebe 400 (`preco deve ser um número`). Os testes de API seguem passando, porque mandam números.
-
-Quando a correção for publicada, o teste passa a acusar `Expected to fail, but passed` e o CI fica vermelho: é o aviso para tirar a marcação.
-
 ## Observações sobre o alvo
 
 - É um serviço **público e compartilhado**: os dados são limpos periodicamente e a disponibilidade não é garantida. Rode com moderação.
@@ -104,6 +92,7 @@ Quando a correção for publicada, o teste passa a acusar `Expected to fail, but
 - O botão "Adicionar no carrinho" da lista de compras não chama a API: leva a uma tela "Em construção". Por isso o fluxo do cliente vai até a lista de compras.
 - Ao excluir um produto, o front recarrega a página logo após o `DELETE`. Por isso a captura da resposta usa `page.route` em vez de `waitForResponse`, que perderia o corpo na navegação.
 - Achado de estudo: o token JWT devolvido pelo login carrega a **senha do usuário no payload**. Em um sistema real isso seria uma falha de segurança grave; aqui é útil como exemplo para testes exploratórios.
+- Bug real encontrado por esta suíte: em 16/11/2026 o cadastro de produto pela tela passou a receber 400. O ServeRest 3.4.0 ([ServeRest#571](https://github.com/ServeRest/ServeRest/pull/571)) fez a API recusar `preco` e `quantidade` em texto, e o front ainda enviava texto. O teste ficou marcado com `test.fail` e o link da correção, proposta e aceita em [ServeRest/front#42](https://github.com/ServeRest/front/pull/42). Quando ela foi publicada, o próprio `test.fail` acusou `Expected to fail, but passed`, e a marcação saiu.
 
 ## Próximos passos
 
