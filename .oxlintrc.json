@@ -52,6 +52,14 @@
           ]
         }]
       }
+    },
+    {
+      "files": ["tests/unit/**"],
+      "rules": {
+        "typescript/no-restricted-imports": ["error", {
+          "patterns": [{ "group": ["**/src/pages/*", "**/src/helpers/*", "**/src/fixtures", "**/src/fixtures/*", "**/src/api/client", "**/a11y/axe"], "message": "Teste de unidade cobre só o código puro: sem navegador, sem rede e sem fixtures." }]
+        }]
+      }
     }
   ]
 }

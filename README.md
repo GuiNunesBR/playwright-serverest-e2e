@@ -15,8 +15,9 @@ Suíte de automação **E2E (interface) e de API** em **Playwright + TypeScript*
 | **UI · cliente** | busca de produto na loja e montagem da lista de compras (quantidade e preço) |
 | **Acessibilidade** | 9 telas auditadas com axe-core (WCAG 2.1 A e AA), com linha de base das pendências conhecidas |
 | **Contrato** | toda resposta relevante da API é validada com schemas [Zod](https://zod.dev) |
+| **Unidade** | fábricas de dados, schemas e lista de páginas auditadas, sem navegador e sem rede |
 
-São **38 execuções** (18 de API, 9 de UI, 9 de acessibilidade e 2 de preparação/limpeza). Os cenários mais importantes levam a tag `@smoke` (`npm run test:smoke`) e os de acessibilidade, `@a11y` (`npm run test:a11y`).
+São **51 execuções** (13 de unidade, 18 de API, 9 de UI, 9 de acessibilidade e 2 de preparação/limpeza). Os cenários mais importantes levam a tag `@smoke` (`npm run test:smoke`) e os de acessibilidade, `@a11y` (`npm run test:a11y`).
 
 ## Como rodar
 
@@ -26,6 +27,7 @@ Requisitos: Node 20 ou superior.
 npm install           # na primeira vez (gera o package-lock.json); depois pode usar npm ci
 npm run browsers      # instala o Chromium do Playwright
 npm test              # tudo (API + UI)
+npm run test:unit     # só unidade (sem navegador e sem rede)
 npm run test:api      # só API (não abre navegador)
 npm run test:ui       # só interface
 npm run test:smoke    # só os cenários @smoke
@@ -71,6 +73,7 @@ src/
   helpers/      criação de sessão (admin/cliente) e anexos de evidência
   pages/        Page Objects da interface
 tests/
+  unit/         testes de unidade do código de apoio
   api/          testes de API
   e2e/          testes de interface + auth.setup / auth.teardown
 .github/workflows/tests.yml   CI (GitHub Actions) com relatório no GitHub Pages

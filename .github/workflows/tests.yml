@@ -33,6 +33,8 @@ jobs:
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint
+      # Os testes de unidade não usam rede: se falharem, o ServeRest compartilhado nem chega a ser chamado.
+      - run: npm run test:unit
       - run: npm test
       - name: Guarda o relatório HTML
         if: ${{ !cancelled() && hashFiles('playwright-report/index.html') != '' }}

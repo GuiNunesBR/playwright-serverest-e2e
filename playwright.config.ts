@@ -22,6 +22,9 @@ export default defineConfig({
     video: 'retain-on-failure',
   },
   projects: [
+    // Testes de unidade do código de apoio (fábricas, contratos, páginas auditadas): sem navegador e sem rede.
+    { name: 'unit', testDir: './tests/unit', testMatch: /\.test\.ts$/ },
+
     // Testes de API: não precisam de navegador.
     { name: 'api', testDir: './tests/api', use: { baseURL: env.apiUrl } },
 
