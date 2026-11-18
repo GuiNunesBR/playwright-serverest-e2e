@@ -31,6 +31,7 @@ npm run test:ui       # só interface
 npm run test:smoke    # só os cenários @smoke
 npm run test:a11y     # só acessibilidade
 npm run report        # abre o relatório HTML
+npm run lint          # confere as camadas (quem pode importar o quê)
 ```
 
 Para apontar para outro ambiente, copie `.env.example` para `.env` e ajuste `FRONT_URL` e `API_URL`.
@@ -81,6 +82,7 @@ tests/
 - **Limpeza garantida.** A fixture `limpeza` apaga o que o teste criou (cancelando carrinho aberto antes), mesmo quando o teste falha. O que nasce pela interface é localizado no final pelo e-mail ou pelo nome.
 - **Contratos com Zod.** Em vez de só checar o status, o teste valida a forma da resposta. Se a API mudar, o erro aponta o campo.
 - **Sessão reaproveitada.** O projeto `setup` cria um admin pela API, faz login pela interface uma vez e salva o `storageState`. Os testes de UI já começam autenticados, e o projeto `cleanup` remove o admin ao final.
+- **Camadas conferidas no lint.** O [oxlint](https://oxc.rs/docs/guide/usage/linter) aplica a regra `no-restricted-imports` do ESLint por pasta (`.oxlintrc.json`): `api`, `config` e `a11y` não dependem de ninguém, Page Objects e fábricas só usam os *tipos* da API, `helpers` e `fixtures` não dirigem a tela, e os specs importam `test` de `src/fixtures`, nunca direto do `@playwright/test`. O oxlint entra no lugar do ESLint porque o `typescript-eslint` ainda não suporta o TypeScript 7.
 - **Seletores estáveis.** Page Objects com `data-testid` e papéis de acessibilidade; o único acoplamento ao DOM é o próprio contrato do front.
 - **API sem navegador.** O projeto `api` usa apenas o `request` do Playwright: rápido e barato no CI.
 - **CI.** Roda dentro da imagem oficial do Playwright (navegador e dependências já instalados, sem `apt-get` a cada execução), com checagem de tipos, execução completa, relatório como artefato e publicação no GitHub Pages na branch `main`. A tag da imagem acompanha a versão do `@playwright/test`.

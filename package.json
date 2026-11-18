@@ -12,12 +12,14 @@
     "test:a11y": "playwright test --grep @a11y",
     "report": "playwright show-report",
     "typecheck": "tsc --noEmit",
+    "lint": "oxlint --deny-warnings src tests",
     "browsers": "playwright install --with-deps chromium"
   },
   "devDependencies": {
     "@axe-core/playwright": "^4.14.0",
     "@playwright/test": "^1.65.0",
     "@types/node": "^22.0.0",
+    "oxlint": "^1.91.0",
     "typescript": "^7.0.2"
   },
   "dependencies": {

@@ -1,0 +1,57 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["typescript"],
+  "categories": { "correctness": "off" },
+  "overrides": [
+    {
+      "files": ["src/api/**", "src/config/**", "src/a11y/**"],
+      "rules": {
+        "typescript/no-restricted-imports": ["error", {
+          "patterns": [{ "group": ["../**"], "message": "api, config e a11y são a base: não dependem das outras camadas." }]
+        }]
+      }
+    },
+    {
+      "files": ["src/data/**"],
+      "rules": {
+        "typescript/no-restricted-imports": ["error", {
+          "patterns": [
+            { "group": ["../api/*"], "allowTypeImports": true, "message": "As fábricas usam só os tipos da API, sem chamá-la." },
+            { "group": ["../config/*", "../a11y/*", "../pages/*", "../helpers/*", "../fixtures", "../fixtures/*", "**/tests/**"], "message": "As fábricas só geram dados: não dependem das outras camadas." }
+          ]
+        }]
+      }
+    },
+    {
+      "files": ["src/pages/**"],
+      "rules": {
+        "typescript/no-restricted-imports": ["error", {
+          "patterns": [
+            { "group": ["../api/*"], "allowTypeImports": true, "message": "Page Object só conhece a tela: chamadas de API ficam nos testes e fixtures." },
+            { "group": ["../config/*", "../a11y/*", "../data/*", "../helpers/*", "../fixtures", "../fixtures/*", "**/tests/**"], "message": "Page Object só conhece a tela: dados, sessão e fixtures ficam nos testes." }
+          ]
+        }]
+      }
+    },
+    {
+      "files": ["src/helpers/**", "src/fixtures/**"],
+      "rules": {
+        "typescript/no-restricted-imports": ["error", {
+          "patterns": [{ "group": ["../pages/*", "../a11y/*", "../fixtures", "../fixtures/*", "**/tests/**"], "message": "helpers e fixtures preparam o teste: não dirigem a tela nem dependem dos testes." }]
+        }]
+      }
+    },
+    {
+      "files": ["tests/**/*.spec.ts"],
+      "rules": {
+        "typescript/no-restricted-imports": ["error", {
+          "paths": [{ "name": "@playwright/test", "message": "Importe test e expect de src/fixtures, que trazem api, admin, limpeza e evidências." }],
+          "patterns": [
+            { "group": ["**/src/api/client"], "allowTypeImports": true, "message": "Use a fixture api em vez de criar um cliente no teste." },
+            { "group": ["**/*.spec", "**/*.setup", "**/*.teardown"], "message": "Um teste não importa outro." }
+          ]
+        }]
+      }
+    }
+  ]
+}
