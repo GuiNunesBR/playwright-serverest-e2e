@@ -27,7 +27,7 @@ Requisitos: Node 20 ou superior.
 ```bash
 npm install           # na primeira vez (gera o package-lock.json); depois pode usar npm ci
 npm run browsers      # instala o Chromium do Playwright
-npm test              # tudo (API + UI)
+npm test              # unidade, API e UI (a regressão visual roda à parte)
 npm run test:unit     # só unidade (sem navegador e sem rede)
 npm run test:api      # só API (não abre navegador)
 npm run test:ui       # só interface
@@ -94,6 +94,19 @@ tests/
 .github/workflows/tests.yml              CI (GitHub Actions) com relatório no GitHub Pages
 .github/workflows/baselines-visuais.yml  gera as linhas de base visuais no Linux do CI
 ```
+
+## Modelo de execução
+
+Um `npm test` passa pelos projetos do `playwright.config.ts` nesta ordem:
+
+1. **`unit` e `api`** começam na hora: não dependem de nada e não abrem navegador.
+2. **`setup`** cria um admin pela API, entra pela tela uma vez e salva a sessão em `.auth/` (`storageState`).
+3. **`chromium`** só começa depois do `setup`; cada teste abre um contexto novo do navegador já com essa sessão.
+4. **`cleanup`** é o teardown do `setup`: roda no fim, mesmo com testes falhando, e apaga o admin.
+
+- **Workers.** Com `fullyParallel`, qualquer teste pode cair em qualquer worker, inclusive testes do mesmo arquivo. Localmente o Playwright usa metade dos núcleos; no CI são 2. Por isso nenhum teste depende de outro, da ordem ou de dado fixo.
+- **Fixtures** (`src/fixtures`). Todas valem por teste e só são criadas quando o teste as pede. A criação segue as dependências (`api` → `limpeza` → `admin`/`cliente`) e a desmontagem vai na ordem inversa: quando a `limpeza` apaga o que o teste registrou, o contexto da `api` ainda está aberto. Um teste de UI recebe ao mesmo tempo a sessão do `setup` (no navegador) e, se pedir, um `admin` próprio (só para preparar e limpar dados pela API).
+- **Falhas e retries.** Cada teste tem 30 s, e cada `expect` espera até 7 s. No CI, um teste que falha roda mais uma vez, já gravando o trace; se passar na segunda, o relatório o marca como *flaky* em vez de esconder a falha.
 
 ## Decisões de projeto
 
