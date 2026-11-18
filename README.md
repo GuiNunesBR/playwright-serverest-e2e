@@ -2,6 +2,8 @@
 
 [![Testes](https://github.com/GuiNunesBR/playwright-serverest-e2e/actions/workflows/tests.yml/badge.svg)](https://github.com/GuiNunesBR/playwright-serverest-e2e/actions/workflows/tests.yml)
 
+**Português** · [English](README.en.md)
+
 Suíte de automação **E2E (interface) e de API** em **Playwright + TypeScript** contra o [ServeRest](https://serverest.dev), uma loja virtual pública criada para estudo de testes. O foco não é a quantidade de testes, e sim a **arquitetura**: dados isolados, limpeza garantida, validação de contrato, sessão reaproveitada e CI com relatório publicado.
 
 > Existe uma versão equivalente em **Cypress**, com os mesmos cenários: [cypress-serverest-e2e](https://github.com/GuiNunesBR/cypress-serverest-e2e). O README de lá traz o comparativo entre as duas ferramentas (tempo, paralelismo, API, interceptação de rede, relatório e depuração).
@@ -117,7 +119,7 @@ Um `npm test` passa pelos projetos do `playwright.config.ts` nesta ordem:
 - **Camadas conferidas no lint.** O [oxlint](https://oxc.rs/docs/guide/usage/linter) aplica a regra `no-restricted-imports` do ESLint por pasta (`.oxlintrc.json`): `api`, `config` e `a11y` não dependem de ninguém, Page Objects e fábricas só usam os *tipos* da API, `helpers` e `fixtures` não dirigem a tela, e os specs importam `test` de `src/fixtures`, nunca direto do `@playwright/test`. O oxlint entra no lugar do ESLint porque o `typescript-eslint` ainda não suporta o TypeScript 7.
 - **Seletores estáveis.** Page Objects com `data-testid` e papéis de acessibilidade; o único acoplamento ao DOM é o próprio contrato do front.
 - **API sem navegador.** O projeto `api` usa apenas o `request` do Playwright: rápido e barato no CI.
-- **CI.** Roda dentro da imagem oficial do Playwright (navegador e dependências já instalados, sem `apt-get` a cada execução), com checagem de tipos, execução completa, relatório como artefato e publicação no GitHub Pages na branch `main`. A tag da imagem acompanha a versão do `@playwright/test`.
+- **CI.** Roda dentro da imagem oficial do Playwright (navegador e dependências já instalados, sem `apt-get` a cada execução), com checagem de tipos, lint das camadas, testes de unidade, execução completa, relatório como artefato e publicação no GitHub Pages na branch `main`. A tag da imagem acompanha a versão do `@playwright/test`.
 
 ## Observações sobre o alvo
 
