@@ -15,9 +15,10 @@ Suíte de automação **E2E (interface) e de API** em **Playwright + TypeScript*
 | **UI · cliente** | busca de produto na loja e montagem da lista de compras (quantidade e preço) |
 | **Acessibilidade** | 9 telas auditadas com axe-core (WCAG 2.1 A e AA), com linha de base das pendências conhecidas |
 | **Contrato** | toda resposta relevante da API é validada com schemas [Zod](https://zod.dev) |
+| **Visual** | telas públicas (login, cadastro e login inválido) comparadas pixel a pixel com uma linha de base |
 | **Unidade** | fábricas de dados, schemas e lista de páginas auditadas, sem navegador e sem rede |
 
-São **51 execuções** (13 de unidade, 18 de API, 9 de UI, 9 de acessibilidade e 2 de preparação/limpeza). Os cenários mais importantes levam a tag `@smoke` (`npm run test:smoke`) e os de acessibilidade, `@a11y` (`npm run test:a11y`).
+São **51 execuções** no `npm test` (13 de unidade, 18 de API, 9 de UI, 9 de acessibilidade e 2 de preparação/limpeza), mais 3 de regressão visual, que rodam à parte. Os cenários mais importantes levam a tag `@smoke` (`npm run test:smoke`) e os de acessibilidade, `@a11y` (`npm run test:a11y`).
 
 ## Como rodar
 
@@ -32,6 +33,7 @@ npm run test:api      # só API (não abre navegador)
 npm run test:ui       # só interface
 npm run test:smoke    # só os cenários @smoke
 npm run test:a11y     # só acessibilidade
+npm run test:visual   # só regressão visual (veja abaixo)
 npm run report        # abre o relatório HTML
 npm run lint          # confere as camadas (quem pode importar o quê)
 ```
@@ -61,6 +63,18 @@ Pendências conhecidas do ServeRest:
 | `color-contrast` | sério | todas as telas | textos e botões abaixo do contraste mínimo de 4.5:1 |
 | `link-name` | sério | vitrine do cliente (`/home`) | o link de cada produto envolve só a imagem sem `alt`, então fica sem nome para leitores de tela |
 
+## Regressão visual
+
+`tests/visual` compara o print das telas públicas com uma linha de base em `tests/visual/__telas__`, sem tolerância de pixels: trocar o texto de um botão já reprova. São telas sem dados de ninguém, então o print é estável.
+
+A renderização de fontes muda de um sistema para outro, por isso a linha de base vale para um ambiente só: o Linux da imagem do Playwright usada no CI. Os arquivos levam o sistema no nome (`login-linux.png`) e só os do Linux vão para o repositório.
+
+- **Gerar ou atualizar as linhas de base:** rode o workflow **Linhas de base visuais** (Actions → *Run workflow*), baixe o artefato, confira cada imagem e faça o commit dos PNG em `tests/visual/__telas__`.
+- **No CI:** o passo de regressão visual entra sozinho quando há linhas de base do Linux no repositório. Se uma tela mudar, o relatório traz a imagem esperada, a recebida e a diferença.
+- **Localmente:** `npm run test:visual:update` gera uma linha de base do seu sistema (ignorada pelo Git) e `npm run test:visual` compara com ela. Serve para conferir uma mudança antes de subir.
+
+Fica fora do `npm test` porque, sem a linha de base do sistema em que roda, o teste falha por definição.
+
 ## Estrutura
 
 ```
@@ -75,8 +89,10 @@ src/
 tests/
   unit/         testes de unidade do código de apoio
   api/          testes de API
+  visual/       regressão visual das telas públicas e linhas de base (__telas__)
   e2e/          testes de interface + auth.setup / auth.teardown
-.github/workflows/tests.yml   CI (GitHub Actions) com relatório no GitHub Pages
+.github/workflows/tests.yml              CI (GitHub Actions) com relatório no GitHub Pages
+.github/workflows/baselines-visuais.yml  gera as linhas de base visuais no Linux do CI
 ```
 
 ## Decisões de projeto
@@ -103,6 +119,7 @@ tests/
 
 - Teste de carga simples (k6) nos endpoints de login e produtos.
 - Matriz de navegadores no CI e relatório Allure.
+- Linhas de base visuais das telas do admin, com o nome do usuário mascarado.
 
 ## Licença
 

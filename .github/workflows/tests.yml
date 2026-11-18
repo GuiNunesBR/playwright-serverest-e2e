@@ -36,6 +36,13 @@ jobs:
       # Os testes de unidade não usam rede: se falharem, o ServeRest compartilhado nem chega a ser chamado.
       - run: npm run test:unit
       - run: npm test
+      # Entra sozinho quando as linhas de base do Linux estiverem no repositório (workflow "Linhas de base visuais").
+      # O relatório vai para uma subpasta, para não substituir o da execução principal.
+      - name: Regressão visual
+        if: ${{ !cancelled() && hashFiles('tests/visual/__telas__/*-linux.png') != '' }}
+        run: npm run test:visual
+        env:
+          PLAYWRIGHT_HTML_OUTPUT_DIR: playwright-report/visual
       - name: Guarda o relatório HTML
         if: ${{ !cancelled() && hashFiles('playwright-report/index.html') != '' }}
         uses: actions/upload-artifact@v7

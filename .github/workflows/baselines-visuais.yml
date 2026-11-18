@@ -1,0 +1,27 @@
+name: Linhas de base visuais
+
+# Gera os prints de referência da regressão visual no mesmo Linux do CI e os entrega como artefato.
+# Baixe o artefato, copie os PNG para tests/visual/__telas__ e faça o commit depois de olhar cada um.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  gerar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    container:
+      image: mcr.microsoft.com/playwright:v1.65.0-noble
+      options: --user 1001
+    steps:
+      - uses: actions/checkout@v7
+      - run: npm ci
+      - run: npm run test:visual:update
+      - uses: actions/upload-artifact@v7
+        with:
+          name: linhas-de-base-visuais
+          path: tests/visual/__telas__/*-linux.png
+          if-no-files-found: error
+          retention-days: 7

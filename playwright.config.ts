@@ -43,6 +43,14 @@ export default defineConfig({
       use: { baseURL: env.frontUrl },
     },
 
+    // Regressão visual das telas públicas, fora do `npm test`: as linhas de base são do Linux do CI (veja o README).
+    {
+      name: 'visual',
+      testDir: './tests/visual',
+      snapshotPathTemplate: '{testDir}/__telas__/{arg}-{platform}{ext}',
+      use: { ...devices['Desktop Chrome'], baseURL: env.frontUrl },
+    },
+
     // Testes de interface, já autenticados como admin.
     {
       name: 'chromium',

@@ -4,3 +4,6 @@ test-results/
 blob-report/
 .auth/
 .env
+# Só as linhas de base do Linux (CI) vão para o repositório.
+tests/visual/__telas__/*
+!tests/visual/__telas__/*-linux.png
