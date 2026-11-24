@@ -35,6 +35,15 @@ export async function anexarChamada(testInfo: TestInfo, chamada: ChamadaApi): Pr
 }
 
 /**
+ * Marca o erro da ação que deveria disparar a chamada: a falha diz que a ação não terminou e mantém a mensagem
+ * e a pilha originais (o locator, o call log, a linha do Page Object).
+ */
+export function falhaDaAcao(erro: unknown, metodo: string, caminho: string | RegExp): unknown {
+  if (erro instanceof Error) erro.message = `A ação que deveria disparar ${metodo} ${caminho} não terminou: ${erro.message}`;
+  return erro;
+}
+
+/**
  * Executa `acao` e devolve a resposta da chamada que o front fez para a API, anexando-a ao relatório.
  * A requisição passa pelo teste (page.route), então o corpo é lido mesmo que o front navegue logo depois.
  * `caminho` em texto compara só o path; uma RegExp é testada contra path + query.
@@ -78,7 +87,11 @@ export async function capturarRespostaDoFront(
 
   await page.route(casa, interceptar);
   try {
-    await acao();
+    try {
+      await acao();
+    } catch (erro) {
+      throw falhaDaAcao(erro, metodo, caminho);
+    }
     // O prazo começa depois da ação: se a ação travar (um seletor que sumiu, por exemplo), o erro dela é o que aparece.
     let relogio: NodeJS.Timeout | undefined;
     const limite = new Promise<never>((_, reject) => {
