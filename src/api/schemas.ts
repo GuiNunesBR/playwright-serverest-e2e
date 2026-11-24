@@ -39,6 +39,14 @@ export const ListaUsuariosSchema = z.object({
   usuarios: z.array(UsuarioSchema),
 });
 
+export const CarrinhoSchema = z.object({
+  produtos: z.array(z.object({ idProduto: z.string(), quantidade: z.number(), precoUnitario: z.number() })),
+  precoTotal: z.number(),
+  quantidadeTotal: z.number(),
+  idUsuario: z.string(),
+  _id: z.string(),
+});
+
 /** Valida `dados` contra o schema e devolve o objeto tipado, com mensagem de erro legível. */
 export function validar<T extends z.ZodType>(schema: T, dados: unknown): z.infer<T> {
   const resultado = schema.safeParse(dados);

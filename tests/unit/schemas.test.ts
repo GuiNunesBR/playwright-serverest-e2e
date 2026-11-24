@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { CadastroSchema, ListaProdutosSchema, LoginSchema, ProdutoSchema, UsuarioSchema, validar } from '../../src/api/schemas';
+import { CadastroSchema, CarrinhoSchema, ListaProdutosSchema, LoginSchema, ProdutoSchema, UsuarioSchema, validar } from '../../src/api/schemas';
 
 const produto = { nome: 'Produto x1', preco: 120, descricao: 'Mouse', quantidade: 3, _id: 'abc123' };
 
@@ -30,5 +30,17 @@ test.describe('Unidade · contratos (schemas)', () => {
     const usuario = { nome: 'Fulano', email: 'qa.x@teste.com', password: 'segredo123', administrador: 'true', _id: 'u1' };
     expect(validar(UsuarioSchema, usuario).administrador).toBe('true');
     expect(() => validar(UsuarioSchema, { ...usuario, administrador: true })).toThrow(/administrador/);
+  });
+
+  test('o carrinho traz o preço unitário de cada item e os totais', () => {
+    const carrinho = {
+      produtos: [{ idProduto: 'abc123', quantidade: 2, precoUnitario: 120 }],
+      precoTotal: 240,
+      quantidadeTotal: 2,
+      idUsuario: 'u1',
+      _id: 'c1',
+    };
+    expect(validar(CarrinhoSchema, carrinho).precoTotal).toBe(240);
+    expect(() => validar(CarrinhoSchema, { ...carrinho, produtos: [{ idProduto: 'abc123', quantidade: 2 }] })).toThrow(/precoUnitario/);
   });
 });

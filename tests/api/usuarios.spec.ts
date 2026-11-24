@@ -1,6 +1,6 @@
 import { test, expect } from '../../src/fixtures';
 import { CadastroSchema, MensagemSchema, UsuarioSchema, validar } from '../../src/api/schemas';
-import { novoUsuario } from '../../src/data/factories';
+import { novoProduto, novoUsuario } from '../../src/data/factories';
 
 test.describe('API · Usuários', () => {
   test('cadastra usuário com sucesso e respeita o contrato', { tag: '@smoke' }, async ({ api, limpeza }) => {
@@ -47,6 +47,37 @@ test.describe('API · Usuários', () => {
     const corpo = validar(UsuarioSchema, await resposta.json());
     expect(corpo.email).toBe(usuario.email);
     expect(corpo.nome).toBe(usuario.nome);
+  });
+
+  test('edita usuário e a consulta mostra os dados novos', async ({ api, limpeza }) => {
+    const criado = await api.criarUsuario(novoUsuario());
+    const { _id } = validar(CadastroSchema, await criado.json());
+    limpeza.usuario(_id);
+    const novosDados = novoUsuario({ administrador: 'true' });
+
+    const edicao = await api.editarUsuario(_id, novosDados);
+
+    expect(edicao.status()).toBe(200);
+    expect(validar(MensagemSchema, await edicao.json()).message).toBe('Registro alterado com sucesso');
+    const consulta = await api.buscarUsuario(_id);
+    expect(validar(UsuarioSchema, await consulta.json())).toEqual({ ...novosDados, _id });
+  });
+
+  test('não exclui usuário com carrinho cadastrado', async ({ api, admin, cliente, limpeza }) => {
+    const criado = await api.criarProduto(novoProduto({ quantidade: 10 }), admin.token);
+    const { _id: idProduto } = validar(CadastroSchema, await criado.json());
+    limpeza.produto(idProduto, admin.token);
+    const carrinho = await api.criarCarrinho([{ idProduto, quantidade: 1 }], cliente.token);
+    const { _id: idCarrinho } = validar(CadastroSchema, await carrinho.json());
+
+    const exclusao = await api.excluirUsuario(cliente.id);
+
+    expect(exclusao.status()).toBe(400);
+    expect(await exclusao.json()).toEqual({
+      message: 'Não é permitido excluir usuário com carrinho cadastrado',
+      idCarrinho,
+    });
+    expect((await api.buscarUsuario(cliente.id)).status()).toBe(200);
   });
 
   test('exclui usuário e ele deixa de existir', async ({ api }) => {

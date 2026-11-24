@@ -44,7 +44,7 @@ export class ServeRestClient {
     private readonly registrar?: RegistroDeChamada,
   ) {}
 
-  private async enviar(metodo: 'GET' | 'POST' | 'DELETE', caminho: string, opcoes: Opcoes = {}): Promise<APIResponse> {
+  private async enviar(metodo: 'GET' | 'POST' | 'PUT' | 'DELETE', caminho: string, opcoes: Opcoes = {}): Promise<APIResponse> {
     const { data, params, token } = opcoes;
     const resposta = await this.request.fetch(caminho, {
       method: metodo,
@@ -68,6 +68,9 @@ export class ServeRestClient {
   }
   buscarUsuarioPorEmail(email: string): Promise<APIResponse> {
     return this.enviar('GET', '/usuarios', { params: { email } });
+  }
+  editarUsuario(id: string, dados: object): Promise<APIResponse> {
+    return this.enviar('PUT', `/usuarios/${id}`, { data: dados });
   }
   excluirUsuario(id: string): Promise<APIResponse> {
     return this.enviar('DELETE', `/usuarios/${id}`);
@@ -95,6 +98,9 @@ export class ServeRestClient {
   // ---- carrinhos
   criarCarrinho(produtos: ItemCarrinho[], token?: string): Promise<APIResponse> {
     return this.enviar('POST', '/carrinhos', { data: { produtos }, token });
+  }
+  buscarCarrinho(id: string): Promise<APIResponse> {
+    return this.enviar('GET', `/carrinhos/${id}`);
   }
   concluirCompra(token?: string): Promise<APIResponse> {
     return this.enviar('DELETE', '/carrinhos/concluir-compra', { token });

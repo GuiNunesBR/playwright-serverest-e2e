@@ -56,6 +56,23 @@ test.describe('API · Produtos', () => {
     expect(lista.produtos[0]._id).toBe(_id);
   });
 
+  test('não exclui produto que faz parte de um carrinho', async ({ api, admin, limpeza }) => {
+    const criado = await api.criarProduto(novoProduto({ quantidade: 10 }), admin.token);
+    const { _id } = validar(CadastroSchema, await criado.json());
+    limpeza.produto(_id, admin.token);
+    const carrinho = await api.criarCarrinho([{ idProduto: _id, quantidade: 1 }], admin.token);
+    const { _id: idCarrinho } = validar(CadastroSchema, await carrinho.json());
+
+    const exclusao = await api.excluirProduto(_id, admin.token);
+
+    expect(exclusao.status()).toBe(400);
+    expect(await exclusao.json()).toEqual({
+      message: 'Não é permitido excluir produto que faz parte de carrinho',
+      idCarrinhos: [idCarrinho],
+    });
+    expect((await api.buscarProduto(_id)).status()).toBe(200);
+  });
+
   test('exclui produto', async ({ api, admin }) => {
     const criado = await api.criarProduto(novoProduto(), admin.token);
     const { _id } = validar(CadastroSchema, await criado.json());
