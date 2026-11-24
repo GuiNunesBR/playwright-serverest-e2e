@@ -5,11 +5,13 @@ export class LojaPage {
   readonly pesquisa: Locator;
   readonly pesquisarBotao: Locator;
   readonly produtos: Locator;
+  readonly semResultado: Locator;
 
   constructor(private readonly page: Page) {
     this.pesquisa = page.getByTestId('pesquisar');
     this.pesquisarBotao = page.getByTestId('botaoPesquisar');
     this.produtos = page.locator('.card');
+    this.semResultado = page.getByText('Nenhum produto foi encontrado');
   }
 
   async abrir(): Promise<void> {

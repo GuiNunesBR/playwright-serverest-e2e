@@ -1,6 +1,6 @@
 import { test, expect } from '../../src/fixtures';
 import { CadastroSchema, ListaProdutosSchema, validar } from '../../src/api/schemas';
-import { novoProduto } from '../../src/data/factories';
+import { novoProduto, termoSemResultado } from '../../src/data/factories';
 import { LoginPage } from '../../src/pages/login.page';
 import { ListaDeComprasPage, LojaPage } from '../../src/pages/loja.page';
 
@@ -41,5 +41,21 @@ test.describe('UI · Loja (cliente)', () => {
     await expect(lista.quantidade).toHaveText('Total: 2');
     await expect(lista.preco).toHaveText(`Preço R$${produto.preco * 2}`);
     await evidencia('lista de compras com duas unidades');
+  });
+
+  test('busca sem resultado avisa que nada foi encontrado', async ({ page, cliente, capturarApi, evidencia }) => {
+    const login = new LoginPage(page);
+    await login.abrir();
+    await login.entrar(cliente.email, cliente.password);
+    await expect(page).toHaveURL(/\/home$/);
+
+    const loja = new LojaPage(page);
+    const resposta = await capturarApi('GET', /^\/produtos\?nome=/, () => loja.pesquisar(termoSemResultado()));
+
+    expect(resposta.status).toBe(200);
+    expect(validar(ListaProdutosSchema, resposta.corpo)).toEqual({ quantidade: 0, produtos: [] });
+    await expect(loja.semResultado).toBeVisible();
+    await expect(loja.produtos).toHaveCount(0);
+    await evidencia('busca sem resultado');
   });
 });

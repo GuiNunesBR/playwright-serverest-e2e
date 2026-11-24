@@ -15,6 +15,11 @@ export function novoUsuario(overrides: Partial<NovoUsuario> = {}): NovoUsuario {
   };
 }
 
+/** Texto de busca que nenhum produto cadastrado contém. */
+export function termoSemResultado(): string {
+  return `inexistente ${sufixo()}`;
+}
+
 export function novoProduto(overrides: Partial<NovoProduto> = {}): NovoProduto {
   return {
     nome: `Produto ${sufixo()}`,

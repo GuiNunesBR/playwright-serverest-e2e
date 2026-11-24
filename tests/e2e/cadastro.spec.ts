@@ -48,4 +48,23 @@ test.describe('UI · Cadastro de usuário', () => {
     await expect(cadastro.alerta).toContainText('Este email já está sendo usado');
     await evidencia('alerta de e-mail duplicado');
   });
+
+  test('exige nome, e-mail e senha', async ({ page, capturarApi, evidencia }) => {
+    const cadastro = new CadastroUsuarioPage(page);
+    await cadastro.abrir();
+
+    const resposta = await capturarApi('POST', '/usuarios', () => cadastro.enviar());
+
+    expect(resposta.status).toBe(400);
+    expect(resposta.corpo).toEqual({
+      nome: 'nome é obrigatório',
+      email: 'email é obrigatório',
+      password: 'password é obrigatório',
+    });
+    // Cada alerta traz também o botão de fechar (×), por isso a comparação é por conteúdo.
+    await expect(cadastro.alerta).toContainText(['Nome é obrigatório', 'Email é obrigatório', 'Password é obrigatório']);
+    await expect(cadastro.alerta).toHaveCount(3);
+    await expect(page).toHaveURL(/\/cadastrarusuarios$/);
+    await evidencia('alertas de campos obrigatórios');
+  });
 });

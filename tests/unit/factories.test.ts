@@ -1,5 +1,5 @@
 import { test, expect } from '@playwright/test';
-import { novoProduto, novoUsuario } from '../../src/data/factories';
+import { novoProduto, novoUsuario, termoSemResultado } from '../../src/data/factories';
 
 // As fábricas rodam sem navegador e sem API: aqui só se confere o que elas prometem aos testes.
 test.describe('Unidade · fábricas de dados', () => {
@@ -32,6 +32,14 @@ test.describe('Unidade · fábricas de dados', () => {
       expect(quantidade).toBeGreaterThanOrEqual(1);
       expect(quantidade).toBeLessThanOrEqual(50);
     }
+  });
+
+  // A busca da loja filtra pelo nome contendo o termo: o termo não pode aparecer no nome de nenhum produto gerado.
+  test('o termo sem resultado não repete e não aparece em nome de produto', () => {
+    const termos = Array.from({ length: 200 }, () => termoSemResultado());
+    expect(new Set(termos).size).toBe(termos.length);
+    const nomes = Array.from({ length: 200 }, () => novoProduto().nome.toLowerCase());
+    for (const termo of termos) expect(nomes.some((nome) => nome.includes(termo))).toBe(false);
   });
 
   test('overrides do produto prevalecem sobre os valores gerados', () => {
