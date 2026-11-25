@@ -1,12 +1,58 @@
 # Playwright + TypeScript · ServeRest
 
+<p align="center"><img src="docs/banner.svg" alt="Playwright · ServeRest: testes de interface e de API contra uma loja pública, com dados isolados, contrato validado e CI publicado" width="100%"></p>
+
 [![Testes](https://github.com/GuiNunesBR/playwright-serverest-e2e/actions/workflows/tests.yml/badge.svg)](https://github.com/GuiNunesBR/playwright-serverest-e2e/actions/workflows/tests.yml)
+[![Playwright](https://img.shields.io/github/package-json/dependency-version/GuiNunesBR/playwright-serverest-e2e/dev/@playwright/test?label=Playwright)](https://github.com/GuiNunesBR/playwright-serverest-e2e/blob/main/package.json)
+[![TypeScript](https://img.shields.io/github/package-json/dependency-version/GuiNunesBR/playwright-serverest-e2e/dev/typescript?label=TypeScript)](https://github.com/GuiNunesBR/playwright-serverest-e2e/blob/main/tsconfig.json)
+[![Node](https://img.shields.io/badge/Node-22%2B-339933)](https://github.com/GuiNunesBR/playwright-serverest-e2e/blob/main/package.json)
+[![MIT](https://img.shields.io/github/license/GuiNunesBR/playwright-serverest-e2e)](https://github.com/GuiNunesBR/playwright-serverest-e2e/blob/main/LICENSE)
 
 **Português** · [English](README.en.md)
+
+**Testes de interface e de API em Playwright contra uma loja pública: os testes criam e apagam os próprios dados, validam o contrato das respostas e deixam evidência no relatório publicado.**
 
 Suíte de automação **E2E (interface) e de API** em **Playwright + TypeScript** contra o [ServeRest](https://serverest.dev), uma loja virtual pública criada para estudo de testes. O foco não é a quantidade de testes, e sim a **arquitetura**: dados isolados, limpeza garantida, validação de contrato, sessão reaproveitada e CI com relatório publicado.
 
 > Existe uma versão equivalente em **Cypress**, com os mesmos cenários: [cypress-serverest-e2e](https://github.com/GuiNunesBR/cypress-serverest-e2e). O README de lá traz o comparativo entre as duas ferramentas (tempo, paralelismo, API, interceptação de rede, relatório e depuração).
+
+## Arquitetura
+
+```mermaid
+flowchart LR
+  subgraph testes["tests/"]
+    api["api/"]
+    e2e["e2e/ · interface e acessibilidade"]
+    unit["unit/"]
+  end
+  subgraph apoio["src/"]
+    fixtures["fixtures<br/>api · admin · limpeza · evidências"]
+    pages["Page Objects"]
+    cliente["cliente da API<br/>e schemas Zod"]
+    dados["fábricas de dados"]
+  end
+  subgraph alvo["ServeRest"]
+    front["front"]
+    rest["API"]
+  end
+  api --> fixtures
+  e2e --> fixtures
+  e2e --> pages
+  unit -.-> cliente
+  unit -.-> dados
+  fixtures --> cliente
+  fixtures --> dados
+  pages --> front
+  cliente --> rest
+  front --> rest
+```
+
+No CI (GitHub Actions), cada push passa por estas etapas; na `main`, o relatório vai para o GitHub Pages:
+
+```mermaid
+flowchart LR
+  push["push ou PR"] --> check["typecheck e lint"] --> unidade["unidade"] --> suite["API, interface e acessibilidade"] --> visual["regressão visual"] --> relatorio["relatório HTML"] --> pages["GitHub Pages"]
+```
 
 ## O que é testado
 

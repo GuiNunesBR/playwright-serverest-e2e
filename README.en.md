@@ -1,14 +1,60 @@
 # Playwright + TypeScript · ServeRest
 
+<p align="center"><img src="docs/banner.en.svg" alt="Playwright · ServeRest: UI and API tests against a public online store, with isolated data, validated contracts and published CI" width="100%"></p>
+
 [![Tests](https://github.com/GuiNunesBR/playwright-serverest-e2e/actions/workflows/tests.yml/badge.svg)](https://github.com/GuiNunesBR/playwright-serverest-e2e/actions/workflows/tests.yml)
+[![Playwright](https://img.shields.io/github/package-json/dependency-version/GuiNunesBR/playwright-serverest-e2e/dev/@playwright/test?label=Playwright)](https://github.com/GuiNunesBR/playwright-serverest-e2e/blob/main/package.json)
+[![TypeScript](https://img.shields.io/github/package-json/dependency-version/GuiNunesBR/playwright-serverest-e2e/dev/typescript?label=TypeScript)](https://github.com/GuiNunesBR/playwright-serverest-e2e/blob/main/tsconfig.json)
+[![Node](https://img.shields.io/badge/Node-22%2B-339933)](https://github.com/GuiNunesBR/playwright-serverest-e2e/blob/main/package.json)
+[![MIT](https://img.shields.io/github/license/GuiNunesBR/playwright-serverest-e2e)](https://github.com/GuiNunesBR/playwright-serverest-e2e/blob/main/LICENSE)
 
 [Português](README.md) · **English**
+
+**UI and API tests in Playwright against a public online store: the tests create and delete their own data, validate the contracts of the responses and leave evidence in the published report.**
 
 An **end-to-end (UI) and API** test suite in **Playwright + TypeScript** against [ServeRest](https://serverest.dev), a public online store built for practising test automation. The focus is not the number of tests but the **architecture**: isolated data, guaranteed cleanup, contract validation, a reused session, and CI with a published report.
 
 > There is an equivalent **Cypress** version with the same scenarios: [cypress-serverest-e2e](https://github.com/GuiNunesBR/cypress-serverest-e2e). Its README compares the two tools (time, parallelism, API testing, network interception, reporting and debugging).
 
 The test names, comments and report steps are in Portuguese, like the app under test.
+
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph tests["tests/"]
+    api["api/"]
+    e2e["e2e/ · UI and accessibility"]
+    unit["unit/"]
+  end
+  subgraph support["src/"]
+    fixtures["fixtures<br/>api · admin · cleanup · evidence"]
+    pages["page objects"]
+    client["API client<br/>and Zod schemas"]
+    data["data factories"]
+  end
+  subgraph target["ServeRest"]
+    front["front end"]
+    rest["API"]
+  end
+  api --> fixtures
+  e2e --> fixtures
+  e2e --> pages
+  unit -.-> client
+  unit -.-> data
+  fixtures --> client
+  fixtures --> data
+  pages --> front
+  client --> rest
+  front --> rest
+```
+
+In CI (GitHub Actions), every push goes through these steps; on `main`, the report is published to GitHub Pages:
+
+```mermaid
+flowchart LR
+  push["push or PR"] --> check["typecheck and lint"] --> unit["unit"] --> suite["API, UI and accessibility"] --> visual["visual regression"] --> report["HTML report"] --> pages["GitHub Pages"]
+```
 
 ## What is tested
 
